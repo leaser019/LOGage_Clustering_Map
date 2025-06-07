@@ -102,6 +102,19 @@
       box-shadow: 0 5px 15px rgba(249, 115, 22, 0.4);
     }
     
+    #file-list a.img::before {
+      content: "🖼️ ";
+    }
+    
+    #file-list a.img {
+      background: linear-gradient(45deg, #8b5cf6, #6d28d9);
+    }
+    
+    #file-list a.img:hover {
+      background: linear-gradient(45deg, #6d28d9, #5b21b6);
+      box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
+    }
+    
     .loading {
       text-align: center;
       font-size: 1.2em;
@@ -246,9 +259,15 @@
             a.href = `http://${owner}.github.io/${repo}/${file.path}`;
             a.textContent = file.path;
             a.target = '_blank';
-          } else {
-            // File khác
-            return; // Bỏ qua các file không phải HTML, Excel hoặc CSV
+
+          }else if( fileExtension === 'png' || fileExtension === 'jpg') {
+            a.classList.add('img');
+            a.href = `http://${owner}.github.io/${repo}/${file.path}`;
+            a.textContent = file.path;
+            a.target = '_blank';
+          }
+          else {
+            return; 
           }
           
           li.appendChild(a);
