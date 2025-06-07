@@ -76,6 +76,32 @@
       content: "📄 ";
     }
     
+    #file-list a.excel::before {
+      content: "📊 ";
+    }
+    
+    #file-list a.csv::before {
+      content: "📈 ";
+    }
+    
+    #file-list a.excel {
+      background: linear-gradient(45deg, #217346, #1e6e3e);
+    }
+    
+    #file-list a.excel:hover {
+      background: linear-gradient(45deg, #1e6e3e, #185733);
+      box-shadow: 0 5px 15px rgba(33, 115, 70, 0.4);
+    }
+    
+    #file-list a.csv {
+      background: linear-gradient(45deg, #f97316, #ea580c);
+    }
+    
+    #file-list a.csv:hover {
+      background: linear-gradient(45deg, #ea580c, #c2410c);
+      box-shadow: 0 5px 15px rgba(249, 115, 22, 0.4);
+    }
+    
     .loading {
       text-align: center;
       font-size: 1.2em;
@@ -93,6 +119,25 @@
       margin-top: 30px;
       font-size: 0.9em;
       color: #6b7280;
+    }
+    
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #10b981;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 1000;
+    }
+    
+    .toast.show {
+      opacity: 1;
     }
     
     @keyframes dots {
@@ -123,6 +168,7 @@
     <ul id="file-list"></ul>
     <div class="footer">Made with 💖</div>
   </div>
+  <div id="toast" class="toast">File đang được tải về...</div>
 
   <script>
     const owner = 'leaser019';
@@ -130,21 +176,81 @@
     const branch = 'main';
     const listElement = document.getElementById('file-list');
     const loading = document.getElementById('loading');
+    const toast = document.getElementById('toast');
+    
+    function showToast(message, duration = 3000) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, duration);
+    }
+    
+    function downloadFile(path, filename) {
+      showToast(`Đang tải ${filename}...`);
+      
+      fetch(`https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`)
+        .then(response => response.blob())
+        .then(blob => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          showToast(`Đã tải ${filename} thành công! 🎉`);
+        })
+        .catch(error => {
+          console.error('Error downloading file:', error);
+          showToast(`Không thể tải ${filename}. Thử lại sau!`, 5000);
+        });
+    }
 
     fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`)
       .then(response => response.json())
       .then(data => {
         loading.style.display = 'none';
-        const htmlFiles = data.tree.filter(item => item.type === 'blob' && item.path.endsWith('.html'));
-        if (htmlFiles.length === 0) {
-          listElement.innerHTML = '<li><a href="#">Không tìm thấy file .html nào</a></li>';
+        const files = data.tree.filter(item => item.type === 'blob');
+        
+        if (files.length === 0) {
+          listElement.innerHTML = '<li><a href="#">Không tìm thấy file nào</a></li>';
           return;
         }
-        htmlFiles.forEach(file => {
+        
+        files.forEach(file => {
           const li = document.createElement('li');
           const a = document.createElement('a');
-          a.href = `http://${owner}.github.io/${repo}/${file.path}`;
-          a.textContent = file.path;
+          const fileName = file.path.split('/').pop();
+          const fileExtension = fileName.split('.').pop().toLowerCase();
+          
+          // Xử lý theo loại file
+          if (fileExtension === 'xlsx' || fileExtension === 'xls') {
+            a.classList.add('excel');
+            a.textContent = file.path;
+            a.href = '#';
+            a.addEventListener('click', (e) => {
+              e.preventDefault();
+              downloadFile(file.path, fileName);
+            });
+          } else if (fileExtension === 'csv') {
+            a.classList.add('csv');
+            a.textContent = file.path;
+            a.href = '#';
+            a.addEventListener('click', (e) => {
+              e.preventDefault();
+              downloadFile(file.path, fileName);
+            });
+          } else if (fileExtension === 'html') {
+            a.href = `http://${owner}.github.io/${repo}/${file.path}`;
+            a.textContent = file.path;
+            a.target = '_blank';
+          } else {
+            // File khác
+            return; // Bỏ qua các file không phải HTML, Excel hoặc CSV
+          }
+          
           li.appendChild(a);
           listElement.appendChild(li);
         });
