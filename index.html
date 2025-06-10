@@ -177,11 +177,11 @@
 <body>
   <div class="container">
     <h1>✨ ENIGMATE'S TREASURE ✨</h1>
-    <div id="loading" class="loading">Đang tìm kho báu</div>
+    <div id="loading" class="loading">Finding Treasure ... </div>
     <ul id="file-list"></ul>
     <div class="footer">Made with 💖</div>
   </div>
-  <div id="toast" class="toast">File đang được tải về...</div>
+  <div id="toast" class="toast">File is downloading...</div>
 
   <script>
     const owner = 'leaser019';
@@ -200,7 +200,7 @@
     }
     
     function downloadFile(path, filename) {
-      showToast(`Đang tải ${filename}...`);
+      showToast(`Downloading ${filename}...`);
       
       fetch(`https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`)
         .then(response => response.blob())
@@ -217,7 +217,7 @@
         })
         .catch(error => {
           console.error('Error downloading file:', error);
-          showToast(`Không thể tải ${filename}. Thử lại sau!`, 5000);
+          showToast(`Can not download ${filename}. Try again!`, 5000);
         });
     }
 
@@ -228,7 +228,7 @@
         const files = data.tree.filter(item => item.type === 'blob');
         
         if (files.length === 0) {
-          listElement.innerHTML = '<li><a href="#">Không tìm thấy file nào</a></li>';
+          listElement.innerHTML = '<li><a href="#">KCan not find any file</a></li>';
           return;
         }
         
@@ -277,7 +277,7 @@
       .catch(error => {
         console.error('Error fetching repo contents:', error);
         loading.style.display = 'none';
-        listElement.innerHTML = '<li><a href="#">Không thể tải danh sách file. Vui lòng kiểm tra lại thông tin repo.</a></li>';
+        listElement.innerHTML = '<li><a href="#">Can not load any files. Check your network again.</a></li>';
       });
   </script>
 </body>
